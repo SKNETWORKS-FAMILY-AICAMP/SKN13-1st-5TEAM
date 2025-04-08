@@ -1,0 +1,56 @@
+elif menu == "데이터 시각화":
+    st.title("📊 법인차량 데이터 시각화")
+
+    chart_brands = st.multiselect("📌 제조사 선택", df['제조사'].unique())
+
+    if chart_brands:
+        chart_df = df[df['제조사'].isin(chart_brands)]
+
+        group_df = chart_df.groupby('제조사').agg({
+            '2024년_판매량': 'sum',
+            '2025년_판매량': 'sum',
+            '2024년_가격': 'mean',
+            '2025년_가격': 'mean'
+        }).reset_index()
+
+        # Plotly 구현
+        fig = px.bar(
+            group_df,
+            x='제조사',
+            y=['2024년_판매량', '2025년_판매량'],
+            barmode='group',
+            title='제조사별 판매량 비교',
+            labels={
+                'value': '판매량',
+                'variable': '년도',
+                '제조사': '제조사'
+            }
+        )
+
+        # 가격 선그래프 추가
+        fig2 = px.line(
+            group_df,
+            x='제조사',
+            y=['2024년_가격', '2025년_가격'],
+            markers=True,
+            title='제조사별 평균 가격 비교',
+            labels={
+                'value': '가격(만원)',
+                'variable': '년도',
+                '제조사': '제조사'
+            }
+        )
+
+        fig.update_layout(
+            yaxis_title='판\n매\n량',
+            xaxis_title='제조사'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        fig2.update_layout(
+            yaxis_title='가\n격',
+            xaxis_title='제조사'
+        )
+        st.plotly_chart(fig2, use_container_width=True)
+    else:
+        st.info("비교할 제조사를 선택해주세요.")
