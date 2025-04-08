@@ -195,7 +195,6 @@ elif menu == "데이터 시각화":
 
 elif menu == "뉴스 정보":
     st.title("📰 법인 관련 뉴스")
-    st.title("📊 뉴스 키워드 분석") 
     QUERY = st.text_input("검색어를 입력하세요", value="법인차 제도")
     FILE_PATH = f"news_data/{QUERY}_news.csv"
     os.makedirs("news_data", exist_ok=True)
@@ -247,42 +246,36 @@ elif menu == "뉴스 정보":
         df_all.to_csv(FILE_PATH, index=False, encoding='utf-8-sig')
         return df_all
 
-    def keyword_visualization(df):
-        font_path = './fonts/NanumGothicCoding.ttf'
-        font_name = fm.FontProperties(fname=font_path).get_name() if os.path.exists(font_path) else 'Malgun Gothic'
-        plt.rcParams['font.family'] = font_name
-        plt.rcParams['axes.unicode_minus'] = False
-
-        all_words = []
-        for summary in df['summary'].dropna():
-            words = re.findall(r"[가-힣]{2,}", summary)
-            all_words.extend(words)
-
-        counter = Counter(all_words)
-        common_keywords = counter.most_common(20)
-        if not common_keywords:
-            st.warning("키워드를 추출할 수 없습니다.")
-            return
-
-        words, counts = zip(*common_keywords)
-        fig, ax = plt.subplots(figsize=(10, 6))
-        sns.barplot(x=list(counts), y=list(words), ax=ax)
-        ax.set_title('뉴스 키워드 분석')
-        st.pyplot(fig)
-
+    # 뉴스 출력 및 페이지 선택 함수
     def show_news(df):
         st.subheader("📰 뉴스 제목 및 요약 보기")
+        num_per_page = 10
+        total_items = len(df)
+        total_pages = (total_items - 1) // num_per_page + 1
+
+        # 세션 상태에 현재 페이지 번호 저장 (초기값 1)
+        if 'current_page' not in st.session_state:
+            st.session_state.current_page = 1
+
+        # 표시할 뉴스 데이터 슬라이싱
+        start_idx = (st.session_state.current_page - 1) * num_per_page
+        end_idx = start_idx + num_per_page
+        df_page = df.iloc[start_idx:end_idx]
+
         def truncate(text, limit=100):
             return text if len(text) <= limit else text[:limit] + "..."
-
-        if st.checkbox("뉴스 제목 + 링크 + 요약 보기", value=True):
-            for i, row in df.iterrows():
-                title = row['title']
-                link = row['url']
-                summary = row['summary']
-                st.markdown(f"### 🔗 [{title}]({link})")
-                st.write(f"📝 요약: {truncate(summary, 100)}")
-                st.markdown("---")
+        
+        # 뉴스 항목 출력
+        for i, row in df_page.iterrows():
+            st.markdown(f"### 🔗 [{row['title']}]({row['url']})")
+            st.write(f"📝 요약: {truncate(row['summary'], 100)}")
+            st.markdown("---")
+        
+        # 하단에 깔끔한 라디오 버튼으로 페이지 번호 선택 (가로 정렬)
+        selected_page = st.radio("페이지 선택", list(range(1, total_pages + 1)),
+                                 index=st.session_state.current_page - 1,
+                                 horizontal=True)
+        st.session_state.current_page = selected_page
 
     pages = st.number_input("크롤링할 뉴스 페이지 수 입력 (10개 단위)", min_value=1, max_value=10, step=1)
 
@@ -299,14 +292,9 @@ elif menu == "뉴스 정보":
     if not df_all.empty:
         st.subheader("최근 수집된 뉴스 미리보기")
         st.dataframe(df_all[['date', 'title', 'press', 'summary']])
-
-        st.subheader("키워드 분석 결과")
-        keyword_visualization(df_all)
-
         show_news(df_all)
     else:
         st.warning("뉴스 데이터가 존재하지 않습니다.")
-
 
 #============================================================================================================#
 elif menu == "자주 묻는 질문":
