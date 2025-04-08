@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -12,7 +13,6 @@ from collections import Counter
 import re
 from datetime import datetime, timedelta
 import matplotlib.font_manager as fm
-import pymysql
 
 
 # 한글 폰트 설정
@@ -23,7 +23,7 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 st.set_page_config(page_title="법인차량 대시보드", layout="wide")
 
 # 사이드바 메뉴 구성
-menu = st.sidebar.radio("📋 메뉴 선택", ["차량 등록 현황","차량 정보 필터", "데이터 시각화", "뉴스 정보" ,"FAQ"])
+menu = st.sidebar.radio("📋 메뉴 선택", ["차량 등록 현황","차량 정보 필터", "데이터 시각화", "뉴스 정보" ,"자주 묻는 질문"])
 
 # 데이터 불러오기
 @st.cache_data
@@ -60,7 +60,6 @@ def load_car_data():
     cars['승용_영업용'] = cars['승용_영업용'].str.replace(',', '').astype(int)
     return cars[['일시', '승용_영업용']]
 
-    
 #==========================================================================================================#
 
 if menu == "차량 등록 현황":
@@ -146,58 +145,41 @@ elif menu == "데이터 시각화":
             '2025년_판매량': 'sum',
             '2024년_가격': 'mean',
             '2025년_가격': 'mean'
-        }).reset_index()
+        })
 
-        # Plotly 구현
-        fig = px.bar(
-            group_df,
-            x='제조사',
-            y=['2024년_판매량', '2025년_판매량'],
-            barmode='group',
-            title='제조사별 판매량 비교',
-            labels={
-                'value': '판매량',
-                'variable': '년도',
-                '제조사': '제조사'
-            }
-        )
+        fig, ax1 = plt.subplots(figsize=(10, 6))
 
-        # 가격 선그래프 추가
-        fig2 = px.line(
-            group_df,
-            x='제조사',
-            y=['2024년_가격', '2025년_가격'],
-            markers=True,
-            title='제조사별 평균 가격 비교',
-            labels={
-                'value': '가격(만원)',
-                'variable': '년도',
-                '제조사': '제조사'
-            }
-        )
+        x = range(len(group_df.index))
+        bar1 = ax1.bar(x, group_df['2024년_판매량'], width=0.35, label='2024년 판매량', color='#4e79a7aa', zorder=3)
+        bar2 = ax1.bar([p + 0.35 for p in x], group_df['2025년_판매량'], width=0.35, label='2025년 판매량', color='#f28e2b88', zorder=3)
+        ax1.set_ylabel("판\n매\n량", rotation=0, labelpad=30, fontsize=12)
+        ax1.set_xlabel("제조사", fontsize=12)
+        ax1.set_xticks([p + 0.175 for p in x])
+        ax1.set_xticklabels(group_df.index)
+        ax1.grid(False)
+        ax1.set_axisbelow(True)
 
-        fig.update_layout(
-            yaxis_title='판\n매\n량',
-            xaxis_title='제조사'
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        ax2 = ax1.twinx()
+        ax2.plot([p + 0.175 for p in x], group_df['2024년_가격'], marker='o', color='#59a14f', label='2024년 가격 (단위 : 만원)', zorder=4)
+        ax2.plot([p + 0.175 for p in x], group_df['2025년_가격'], marker='o', color='#e15759', label='2025년 가격 (단위 : 만원)', zorder=4)
+        ax2.set_ylabel("평\n균\n가\n격", rotation=0, labelpad=50, fontsize=12)
+        ax2.grid(False)
 
-        fig2.update_layout(
-            yaxis_title='가\n격',
-            xaxis_title='제조사'
-        )
-        st.plotly_chart(fig2, use_container_width=True)
+        plt.title("제조사별 판매량 및 평균 가격 비교", fontsize=14)
+        ax1.legend(loc='lower left', bbox_to_anchor=(-0.02, -0.25), fontsize=9, frameon=True)
+        ax2.legend(loc='lower right', bbox_to_anchor=(1.02, -0.25), fontsize=9, frameon=True)
+
+        st.pyplot(fig)
     else:
-        st.info("비교할 제조사를 선택해주세요.")    
+        st.info("비교할 제조사를 선택해주세요.")
 
 #===========================================================================================================#
 
-# 뉴스 정보, 검색어 입력, 요약, 링크
-# 페이지 선택부분 수정 필요
+# 키워드 분석과 뉴스 요약 표시를 확실히 작동하게 수정한 뉴스 정보 섹션
 
 elif menu == "뉴스 정보":
     st.title("📰 법인 관련 뉴스")
-
+    st.title("📊 뉴스 키워드 분석") 
     QUERY = st.text_input("검색어를 입력하세요", value="법인차 제도")
     FILE_PATH = f"news_data/{QUERY}_news.csv"
     os.makedirs("news_data", exist_ok=True)
@@ -249,21 +231,42 @@ elif menu == "뉴스 정보":
         df_all.to_csv(FILE_PATH, index=False, encoding='utf-8-sig')
         return df_all
 
-    def show_news_paginated(df):
-        st.subheader("📰 뉴스 제목 및 요약 보기 (페이지별)")
+    def keyword_visualization(df):
+        font_path = './fonts/NanumGothicCoding.ttf'
+        font_name = fm.FontProperties(fname=font_path).get_name() if os.path.exists(font_path) else 'Malgun Gothic'
+        plt.rcParams['font.family'] = font_name
+        plt.rcParams['axes.unicode_minus'] = False
+
+        all_words = []
+        for summary in df['summary'].dropna():
+            words = re.findall(r"[가-힣]{2,}", summary)
+            all_words.extend(words)
+
+        counter = Counter(all_words)
+        common_keywords = counter.most_common(20)
+        if not common_keywords:
+            st.warning("키워드를 추출할 수 없습니다.")
+            return
+
+        words, counts = zip(*common_keywords)
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.barplot(x=list(counts), y=list(words), ax=ax)
+        ax.set_title('뉴스 키워드 분석')
+        st.pyplot(fig)
+
+    def show_news(df):
+        st.subheader("📰 뉴스 제목 및 요약 보기")
         def truncate(text, limit=100):
             return text if len(text) <= limit else text[:limit] + "..."
 
-        page_size = 10
-        total_pages = (len(df) - 1) // page_size + 1
-        page = st.number_input("페이지 선택", min_value=1, max_value=total_pages, step=1)
-        start = (page - 1) * page_size
-        end = start + page_size
-
-        for i, row in df.iloc[start:end].iterrows():
-            st.markdown(f"### 🔗 [{row['title']}]({row['url']})")
-            st.write(f"📝 요약: {truncate(row['summary'], 100)}")
-            st.markdown("---")
+        if st.checkbox("뉴스 제목 + 링크 + 요약 보기", value=True):
+            for i, row in df.iterrows():
+                title = row['title']
+                link = row['url']
+                summary = row['summary']
+                st.markdown(f"### 🔗 [{title}]({link})")
+                st.write(f"📝 요약: {truncate(summary, 100)}")
+                st.markdown("---")
 
     pages = st.number_input("크롤링할 뉴스 페이지 수 입력 (10개 단위)", min_value=1, max_value=10, step=1)
 
@@ -281,62 +284,20 @@ elif menu == "뉴스 정보":
         st.subheader("최근 수집된 뉴스 미리보기")
         st.dataframe(df_all[['date', 'title', 'press', 'summary']])
 
-        show_news_paginated(df_all)
+        st.subheader("키워드 분석 결과")
+        keyword_visualization(df_all)
+
+        show_news(df_all)
     else:
         st.warning("뉴스 데이터가 존재하지 않습니다.")
 
 
-
-#===========================================================================================================#
-elif menu == "FAQ":
-    st.title("❓ 자주 묻는 질문 (FAQ)")
-
-    # MySQL에서 FAQ 데이터 불러오기
-    def load_data_from_mysql(host, user, password, database, table_name="faq"):
-        conn = pymysql.connect(
-            host=host,
-            user=user,
-            password=password,
-            db=database,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor
-        )
-        with conn.cursor() as cursor:
-            cursor.execute(f"SELECT question, answer FROM {table_name}")
-            result = cursor.fetchall()
-        conn.close()
-        return pd.DataFrame(result)
-
-    # Streamlit FAQ 페이지 실행 함수
-    def render_faq():
-        st.write("아래 질문을 클릭하면 답변을 확인할 수 있어요.")
-
-        host = "127.0.0.1"
-        user = "runnnn"
-        password = "1111"
-        database = "FAQ"
-        table_name = "faq"
-
-        try:
-            df = load_data_from_mysql(host, user, password, database, table_name)
-        except Exception as e:
-            st.error(f"데이터를 불러오는 중 오류 발생: {e}")
-            return
-
-        query = st.text_input("🔍 질문 검색", "")
-        if query:
-            df = df[df["question"].str.contains(query, case=False, na=False)]
-
-        for _, row in df.iterrows():
-            with st.expander(f"❓ {row['question']}"):
-                st.write(row['answer'])
-
-    # ✅ 여기가 핵심! 메뉴에 진입했을 때 바로 실행
-    render_faq()
-
-
-
-
-
 #============================================================================================================#
-
+elif menu == "자주 묻는 질문":
+    st.title("❓ 자주 묻는 질문 (FAQ)")
+    with st.expander("Q1. 법인차량을 개인적으로 사용해도 되나요?"):
+        st.write("A. 업무 외의 개인적 사용은 세무상 문제가 발생할 수 있습니다. 규정을 반드시 확인하세요.")
+    with st.expander("Q2. 법인차량 구매 시 세금 혜택이 있나요?"):
+        st.write("A. 네, 부가가치세 환급 등 다양한 혜택이 존재합니다.")
+    with st.expander("Q3. 전기차도 법인차로 등록 가능한가요?"):
+        st.write("A. 네, 오히려 친환경 혜택으로 인해 많이 권장되고 있습니다.")
