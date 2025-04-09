@@ -2,6 +2,17 @@
 <제목을 다시정하자>법인차량 관련 FAQ 시스템
 <팀소개> <팀이름,팀원 소개, 맡은 역할>
 
+---
+
+|Name|Introduce|Github Link|
+|:------:|:-----:|:-----:|
+|김승호|테스트2|qqqppma@gmail.com|
+|김지민|테스트2|kzm0502@naver.com|
+|변성일|테스트2|erety4100@naver.com|
+|장시인|테스트2|zzangsiin@gmail.com|
+|장진슬|테스트2|gpendlr@gmail.com|
+
+
 
 ---
 
@@ -45,29 +56,60 @@
 <전체적인 목차, 내용을 한번 훑어서 말하면서 밑에 사용한 기술 스택과 연결 짓기> 
 
 ---
+
+// #. WBS
+| 작업 명                | 시작일 | 종료일 | 담당자                   | 산출물                   | 의존작업            |
+|---------------------|:-------:|:-------:|-----------------------|------------------------|--------------------|
+| 프로젝트 주제 선정     | 04-09 | 04-09 | ALL                       | 없음                    | 없음                |
+| 웹 크롤링              | 04-09 | 04-09 | ALL                       | csv,                    | Streamlit 작업       |
+| FAQ 크롤링             | 04-09 | 04-09 | 변성일,장시인             | csv,                     | Streamlit 작업       |
+| ERD 작성               | 04-10 | 04-10 |                          | ?ERD 다이어그램            | 없음                |
+| 데이터-DB연동          | 04-10 | 04-10 |                           | ?DB 데이터                | 크롤링, 데이터수집     |
+| Streamlit 화면 설계    | 04-10 | 04-10 | 김승호, 변성일             | ?설계파일, WEB 화면       | 없음                |
+| Streamlit-DB연동       | 04-10 | 04-10 | 김승호, 변성일             | ?DB table                 | Streamlit 화면       |
+| Streamlit 화면 구현    | 04-10 | 04-10 | 김승호, 변성일             | ?Streamlit 화면           | 크롤링, 데이터수집     |
+| 코드 취합              | 04-10 | 04-10 | ALL                       | ?Web 페이지, DB 데이터     | 크롤링, 데이터수집     |
+| 최종 점검              | 04-10 | 04-10 | ALL                       | ?Web 페이지                | 없음                  |
+
+---
+
+
+
+
+
 ### 2. 프로젝트 정책 분석
 
 ## 2-1. 사용한 기술 스택
 
-
-<파이썬 mySQL>
-<GitHub> <Selenium>
-<Jupyter lab> <pandas> 등 
-
+<p align="center">
+  <img src="https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white">
+  <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white">
+</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=Python&logoColor=white">
+  <img src="https://img.shields.io/badge/Streamlit-%23FE4B4B.svg?style=for-the-badge&logo=streamlit&logoColor=white">
+  <img src="https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=Selenium&logoColor=white">
+</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=MySQL&logoColor=white">
+  <img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white">
+  <img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white">
+<!--   <img src="https://img.shields.io/badge/Windows%2011-%230079d5.svg?style=for-the-badge&logo=Windows%2011&logoColor=white"> -->
+</p>
+<br/><br/>
 
 ---
 
 ## 2-2. 데이터 수집 및 처리 과정
 
 ### 📊 데이터 출처
-- 국토교통부 차량 등록 통계 - 통계 누리 
-- KAIDA (한국수입자동차협회) 수입차 판매량
+- 국토교통부 차량 등록 통계 - 통계 누리
+- DANAWA (다나와 자동차) 수입차 판매량
 - 유튜브/트위터 크롤링: 댓글 여론 수집
-- <어디어디 뉴스 페이지에서 크롤링>
-- 
-
+- 네이버 뉴스를 통한 뉴스 기사 크롤링
+ <!-- KAIDA (한국수입자동차협회) 수입차 판매량--> 
 ### 🔍 분석내용과 분석 포인트
-- 23년 24년 등록/판매 수치 비교
+- 2023년 1월 ~ 2025년 2월 수입차 등록/판매 수치 비교
 - 브랜드별 변화 추이 분석
 - 댓글 텍스트 분석 (키워드/ '감정'?)
 - 시각화 도구: ...? streamlit, mySQL
