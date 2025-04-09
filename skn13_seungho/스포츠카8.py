@@ -19,7 +19,7 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 
 # Streamlit 앱 구성
 st.set_page_config(page_title="법인차량 대시보드", layout="wide")
-menu = st.sidebar.radio("📋 메뉴 선택", ["차량 등록 현황","차량 정보 필터", "데이터 시각화", "뉴스 정보" ,"자주 묻는 질문"])
+menu = st.sidebar.radio("📋 메뉴 선택", ["차량 등록 현황","차량 정보 필터", "뉴스 정보" ,"자주 묻는 질문"])
 
 @st.cache_data
 def load_data():
@@ -28,37 +28,57 @@ def load_data():
 df = load_data()
 
 if menu == "차량 등록 현황":
-    st.title("🚗 법인 차량 등록 통계")
+    st.title("🚗 수입차 등록 통계 (차종별)")
 
     @st.cache_data
     def load_car_data():
-        cars = pd.read_csv("자동차등록현황보고_자동차등록대수현황 시도별 (201101 ~ 202502).csv", encoding="cp949", skiprows=5)
-        cars.columns = ['일시', '시도명', '시군구', '승용_관용', '승용_자가용', '승용_영업용', '승용_계',
-                        '승합_관용', '승합_자가용', '승합_영업용', '승합_계',
-                        '화물_관용', '화물_자가용', '화물_영업용', '화물_계',
-                        '특수_관용', '특수_자가용', '특수_영업용', '특수_계',
-                        '총계_관용', '총계_자가용', '총계_영업용', '총계']
-        cars = cars[(cars['시도명'] == '서울') & (cars['시군구'] == '강남구')]
-        cars['일시'] = pd.to_datetime(cars['일시'])
-        cars['승용_영업용'] = cars['승용_영업용'].str.replace(',', '').astype(int)
-        return cars[['일시', '승용_영업용']]
+        df = pd.read_csv("car_reg.csv")
+        df = df.set_index("차종별").T  # 전치: 날짜(열) → 인덱스
+        df.index.name = "월"
+        df.index = pd.to_datetime(df.index, format='%y%m')
+        return df
 
-    df_car = load_car_data()
-    df_recent = df_car[-24:].reset_index(drop=True)
+    car_df = load_car_data()
 
-    avg_2023 = df_recent[:12]['승용_영업용'].mean()
-    avg_2024 = df_recent[12:]['승용_영업용'].mean()
+    selected_models = st.multiselect("🚘 차종 선택", car_df.columns.tolist())
+    if selected_models:
+        df_selected = car_df[selected_models]
 
-    st.write("2023-2024 영업용 승용차 변동 추이")
-    fig = px.scatter(df_recent, x="일시", y="승용_영업용", title="월별 등록수 변화")
-    st.plotly_chart(fig)
+        # 👉 등록수 기준으로 10000대 이상/미만 분리
+        high_volume = [model for model in selected_models if df_selected[model].max() >= 5000]
+        low_volume = [model for model in selected_models if df_selected[model].max() < 5000]
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("🚗 2023 평균 등록수", f"{avg_2023:.0f}대")
-    col2.metric("🚗 2024 평균 등록수", f"{avg_2024:.0f}대")
-    diff = avg_2024 - avg_2023
-    rate = (diff / avg_2023) * 100
-    col3.metric("📉 전년 대비 변화", f"{diff:+.0f}대", f"{rate:+.1f}%")
+        st.subheader("📈 등록대수 5,000대 이상 모델")
+        if high_volume:
+            st.line_chart(df_selected[high_volume])
+        else:
+            st.info("5,000대 이상 등록된 모델이 없습니다.")
+
+        st.subheader("📉 등록대수 5,000대 미만 모델")
+        if low_volume:
+            st.line_chart(df_selected[low_volume])
+        else:
+            st.info("5,000대 미만 등록된 모델이 없습니다.")
+
+
+        st.line_chart(df_selected)
+
+        # 최근 12개월 평균
+        df_recent = df_selected[-24:].copy()
+        df_2023 = df_recent[df_recent.index.year == 2023].mean()
+        df_2024 = df_recent[df_recent.index.year == 2024].mean()
+
+        st.write("📊 평균 등록 수 (최근 12개월)")
+        for model in selected_models:
+            col1, col2, col3 = st.columns(3)
+            col1.metric(f"🚘 {model} - 2023 평균", f"{df_2023[model]:.0f}대")
+            col2.metric(f"🚘 {model} - 2024 평균", f"{df_2024[model]:.0f}대")
+            diff = df_2024[model] - df_2023[model]
+            rate = (diff / df_2023[model]) * 100 if df_2023[model] != 0 else 0
+            col3.metric("📈 전년 대비 변화", f"{diff:+.0f}대", f"{rate:+.1f}%")
+    else:
+        st.info("비교할 차종을 선택해주세요.")
+
 
 elif menu == "차량 정보 필터":
     st.title("🚘 수입차 판매 데이터 비교 (연도별/월별 시각화)")
@@ -111,16 +131,6 @@ elif menu == "차량 정보 필터":
             st.plotly_chart(fig)
     else:
         st.info("연도, 모델, 비교 항목을 모두 선택해주세요.")
-elif menu == "데이터 시각화":
-    st.title("📊 법인차량 데이터 시각화")
-
-    @st.cache_data
-    def load_viz_data():
-        return pd.read_csv("corporate_cars.csv")
-
-    viz_df = load_viz_data()
-    st.dataframe(viz_df)
-    st.line_chart(viz_df.set_index(viz_df.columns[0]))
 
 elif menu == "뉴스 정보":
     st.title("📰 법인 관련 뉴스")
