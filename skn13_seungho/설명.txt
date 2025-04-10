@@ -6,3 +6,6 @@ pip install -r requirements.txt
 다운로드 후 해당 폴더 cmd 에서 streamlit run app.py 입력
 
 test
+
+
+Streamlit run twitteremotion.py
