@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 import matplotlib.font_manager as fm
 import pymysql
 from wordcloud import WordCloud
-
+from sqlalchemy import create_engine
 
 # 한글 폰트 설정
 matplotlib.rcParams['font.family'] = 'Malgun Gothic'
@@ -22,13 +22,7 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 
 # Streamlit 앱 구성
 st.set_page_config(page_title="법인차량 대시보드", layout="wide")
-menu = st.sidebar.radio("📋 메뉴 선택", ["차량 등록 현황","차량 정보 필터", "뉴스 정보", "트위터 반응", "유튜브 반응" ,"자주 묻는 질문"])
-
-@st.cache_data
-def load_data():
-    return pd.read_csv("car_sales_2023_01_to_2025_03.csv")
-
-df = load_data()
+menu = st.sidebar.radio("📋 메뉴 선택", ["차량 등록 현황","차량 정보 필터", "뉴스 정보", "트위터 반응", "유튜브 반응" ,"자주 묻는 질문"])       
 
 ###############################################################################################################
 
@@ -105,10 +99,33 @@ if menu == "차량 등록 현황":
 
 
 ###############################################################################################################
-
+    
 elif menu == "차량 정보 필터":
     st.title("🚘 수입차 판매 데이터 비교 (연도별/월별 시각화)")
 
+    @st.cache_data
+    def load_data():
+        conn = pymysql.connect(
+            host="localhost",
+            user="runnnn",
+            password="1111",
+            database="car_sales",
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM carsales")
+            result = cursor.fetchall()
+        conn.close()
+
+        df = pd.DataFrame(result)
+        df = df.drop_duplicates(subset=["자동차 모델", "년도", "월"])
+        return df
+
+    # ✅ 데이터 불러오기
+    df = load_data()
+
+    # ✅ 필터 영역
     available_years = sorted(df["년도"].unique())
     selected_years = st.multiselect("📆 연도 선택", available_years, default=available_years)
 
@@ -117,9 +134,9 @@ elif menu == "차량 정보 필터":
 
     excluded = ['년도', '월', '자동차 모델']
     candidate_metrics = [col for col in df.columns if col not in excluded]
-
     selected_metrics = st.multiselect("📊 비교 항목 선택", candidate_metrics)
 
+    # ✅ 조건 충족 시 필터링 및 시각화
     if selected_models and selected_metrics and selected_years:
         filtered_df = df[
             (df['자동차 모델'].isin(selected_models)) &
@@ -158,6 +175,7 @@ elif menu == "차량 정보 필터":
     else:
         st.info("연도, 모델, 비교 항목을 모두 선택해주세요.")
 
+
 ###############################################################################################################
 
 elif menu == "뉴스 정보":
@@ -180,7 +198,7 @@ elif menu == "뉴스 정보":
                 return None
         return None
 
-    def crawl_news(query, pages=1):
+    def crawl_news(query, pages=1): # sql 연동 ,검색어 news 자동 저장
         data = []
         for page in range(1, pages + 1):
             start = (page - 1) * 10 + 1
@@ -206,13 +224,29 @@ elif menu == "뉴스 정보":
                 data.append({'title': title, 'press': press, 'date': date, 'summary': summary, 'url': link})
         return pd.DataFrame(data)
 
-    def save_news(df_new):
-        if os.path.exists(FILE_PATH):
-            df_old = pd.read_csv(FILE_PATH)
+    def save_news(df_new, query):
+        # 1️⃣ 기존 CSV 병합
+        file_path = f"news_data/{query}_news.csv"
+        if os.path.exists(file_path):
+            df_old = pd.read_csv(file_path)
             df_all = pd.concat([df_old, df_new]).drop_duplicates(subset=['url'])
         else:
             df_all = df_new
-        df_all.to_csv(FILE_PATH, index=False, encoding='utf-8-sig')
+    
+        # 2️⃣ 검색어 컬럼 추가
+        df_all["query"] = query
+    
+        # 3️⃣ CSV 저장
+        df_all.to_csv(file_path, index=False, encoding='utf-8-sig')
+    
+        # 4️⃣ MySQL 저장 (중복 가능성 있음 → url 기준으로 정리 추천)
+        try:
+            engine = create_engine("mysql+pymysql://runnnn:1111@localhost:3306/news_db")
+            df_new["query"] = query  # ✅ 새로 수집된 뉴스에도 검색어 추가
+            df_new.to_sql(name="news_data", con=engine, if_exists="append", index=False)
+        except Exception as e:
+            st.error(f"MySQL 저장 실패: {e}")
+    
         return df_all
 
     def show_news_paginated(df):
@@ -235,8 +269,9 @@ elif menu == "뉴스 정보":
 
     if st.button("최신 뉴스 크롤링하기"):
         df_today = crawl_news(QUERY, pages)
-        df_all = save_news(df_today)
+        df_all = save_news(df_today, QUERY)  # ✅ 두 번째 인자 추가
         st.success(f"{len(df_today)}건 수집 완료! 전체 {len(df_all)}건 저장됨.")
+
     elif os.path.exists(FILE_PATH):
         df_all = pd.read_csv(FILE_PATH)
     else:
