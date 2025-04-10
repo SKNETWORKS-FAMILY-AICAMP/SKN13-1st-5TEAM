@@ -4,13 +4,15 @@
 
 ---
 
-|Name|Introduce|Github Link|
-|:------:|:-----:|:-----:|
-|김승호|테스트2|qqqppma@gmail.com|
-|김지민|테스트2|kzm0502@naver.com|
-|변성일|테스트2|erety4100@naver.com|
-|장시인|테스트2|zzangsiin@gmail.com|
-|장진슬|테스트2|gpendlr@gmail.com|
+
+| Name | Introduce | Github Link |
+|:----:|:---------:|:-----------:|
+| 김승호 | <img src="./우디.png" width="80"/> | qqqppma@gmail.com |
+| 김지민 | <img src="./렉스.png" width="80"/> | kzm0502@naver.com |
+| 변성일 | <img src="./버즈.png" width="80"/> | erety4100@naver.com |
+| 장시인 | <img src="./포테이토.png" width="80"/> | zzangsiin@gmail.com |
+| 장진슬 | <img src="./알린.png" width="80"/> | gpendlr@gmail.com |
+
 
 
 
