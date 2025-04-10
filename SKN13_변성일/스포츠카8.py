@@ -22,7 +22,7 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 
 # Streamlit 앱 구성
 st.set_page_config(page_title="법인차량 대시보드", layout="wide")
-menu = st.sidebar.radio("📋 메뉴 선택", ["차량 등록 현황","차량 정보 필터", "뉴스 정보" ,"자주 묻는 질문"])
+menu = st.sidebar.radio("📋 메뉴 선택", ["차량 등록 현황","차량 정보 필터", "뉴스 정보", "트위터 반응", "유튜브 반응" ,"자주 묻는 질문"])
 
 @st.cache_data
 def load_data():
@@ -30,24 +30,39 @@ def load_data():
 
 df = load_data()
 
-if menu == "차량 등록 현황":
-    st.title("🚗 수입차 등록 통계 (차종별)")
+###############################################################################################################
 
+import pandas as pd
+import streamlit as st
+from sqlalchemy import create_engine
+
+if menu == "차량 등록 현황":
+    st.title("🚗 수입 법인차량 등록 통계 (차종별)")
+
+    # ✅ MySQL에서 데이터 불러오기 함수
     @st.cache_data
-    def load_car_data():
-        df = pd.read_csv("car_reg.csv")
-        df = df.set_index("차종별").T  # 전치: 날짜(열) → 인덱스
+    def load_car_data_from_mysql():
+        db_user = "runnnn"
+        db_password = "1111"
+        db_host = "localhost"
+        db_port = "3306"
+        db_name = "car_reg"
+        table_name = "car_reg"
+
+        engine = create_engine(f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}")
+        query = f"SELECT * FROM {table_name}"
+        df = pd.read_sql(query, con=engine)
+        df = df.set_index("차종별").T
         df.index.name = "월"
-        df.index = pd.to_datetime(df.index, format='%y%m')
+        df.index = pd.to_datetime(df.index, format="%y%m")
         return df
 
-    car_df = load_car_data()
+    car_df = load_car_data_from_mysql()
 
     selected_models = st.multiselect("🚘 차종 선택", car_df.columns.tolist())
     if selected_models:
         df_selected = car_df[selected_models]
 
-        # 👉 등록수 기준으로 10000대 이상/미만 분리
         high_volume = [model for model in selected_models if df_selected[model].max() >= 5000]
         low_volume = [model for model in selected_models if df_selected[model].max() < 5000]
 
@@ -63,10 +78,10 @@ if menu == "차량 등록 현황":
         else:
             st.info("5,000대 미만 등록된 모델이 없습니다.")
 
-
+        # 전체 차트
         st.line_chart(df_selected)
 
-        # 최근 12개월 평균
+        # 최근 12개월 평균 비교
         df_recent = df_selected[-24:].copy()
         df_2023 = df_recent[df_recent.index.year == 2023].mean()
         df_2024 = df_recent[df_recent.index.year == 2024].mean()
@@ -82,6 +97,8 @@ if menu == "차량 등록 현황":
     else:
         st.info("비교할 차종을 선택해주세요.")
 
+
+###############################################################################################################
 
 elif menu == "차량 정보 필터":
     st.title("🚘 수입차 판매 데이터 비교 (연도별/월별 시각화)")
@@ -134,6 +151,8 @@ elif menu == "차량 정보 필터":
             st.plotly_chart(fig)
     else:
         st.info("연도, 모델, 비교 항목을 모두 선택해주세요.")
+
+###############################################################################################################
 
 elif menu == "뉴스 정보":
     st.title("📰 법인 관련 뉴스")
@@ -228,6 +247,83 @@ elif menu == "뉴스 정보":
         
 ###############################################################################################################
 
+elif menu == "트위터 반응":
+    st.title("🚗 트위터 반응 수집 결과 보기")
+    
+    csv_file = "tweet_contents.csv"
+
+    # CSV 로드
+    @st.cache_data
+    def load_data_tw():
+        if os.path.exists(csv_file):
+            return pd.read_csv(csv_file)
+        else:
+            return pd.DataFrame(columns=["url", "text"])  # 빈 데이터프레임 반환
+    
+    df = load_data_tw()
+    
+    if df.empty:
+        st.error("❌ tweet_contents.csv 파일을 찾을 수 없습니다.")
+    else:
+        st.success("✅ CSV 파일 로딩 완료!")
+    
+        search_keyword = st.text_input("🔍 키워드로 내용 검색 (예: 법인, 연두색)")
+    
+        if search_keyword:
+            filtered = df[df["text"].str.contains(search_keyword, case=False, na=False)]
+    
+            if not filtered.empty:
+                for _, row in filtered.iterrows():
+                    st.markdown(f"**📝 트윗 내용**")
+                    st.write(row["text"])
+                    st.markdown("---")
+            else:
+                st.warning("❗ 검색 결과가 없습니다. 다른 키워드를 시도해보세요.")
+                
+##############################################################################################################
+
+elif menu == "유튜브 반응":
+    # CSV 파일 불러오기 (파일명에 괄호가 있으면 오류 가능 → 파일명 변경 권장)
+    comments_df = pd.read_csv("comments.csv", header=None)
+    comments = comments_df[0].dropna().astype(str)
+    
+    st.title("🟢 연두색 번호판 관련 유튜브 댓글 분석")
+    
+    # 총 댓글 수 표시
+    st.write(f"총 댓글 수: {len(comments)}개")
+    
+    # 🔎 키워드 검색
+    search_keyword = st.text_input("댓글 내 키워드 검색", "")
+    if search_keyword:
+        filtered = comments[comments.str.contains(search_keyword, case=False)]
+        st.write(f"🔍 '{search_keyword}'가 포함된 댓글 수: {len(filtered)}개")
+        st.dataframe(filtered)
+    
+    # 📊 워드클라우드 생성
+    st.subheader("주요 키워드 워드클라우드")
+    
+    all_text = " ".join(comments.tolist())
+    
+    # ✅ font_path 제거 → 시스템 기본 폰트 사용
+    from wordcloud import WordCloud
+    import matplotlib.pyplot as plt
+    
+    text = " ".join(comments.tolist())
+    wc = WordCloud(font_path=r"C:\Users\erety\sk_13_5_1st_sungil\1st_pj_g5\새 폴더\NanumGothicCoding.ttf", width=800, height=400).generate(text)
+    
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wc, interpolation='bilinear')
+    plt.axis("off")
+    plt.show()
+    
+    
+    plt.imshow(wc, interpolation="bilinear")
+    plt.axis("off")
+    st.pyplot(plt)
+
+
+###############################################################################################################
+
 elif menu == "자주 묻는 질문":
     st.title("❓ 자주 묻는 질문 (FAQ)")
 
@@ -250,26 +346,37 @@ elif menu == "자주 묻는 질문":
     # Streamlit FAQ 페이지 실행 함수
     def render_faq():
         st.write("아래 질문을 클릭하면 답변을 확인할 수 있어요.")
-
+    
         host = "127.0.0.1"
         user = "runnnn"
         password = "1111"
         database = "FAQ"
         table_name = "faq"
-
+    
         try:
             df = load_data_from_mysql(host, user, password, database, table_name)
         except Exception as e:
             st.error(f"데이터를 불러오는 중 오류 발생: {e}")
             return
-
+    
         query = st.text_input("🔍 질문 검색", "")
         if query:
             df = df[df["question"].str.contains(query, case=False, na=False)]
+    
+        if df.empty:
+            st.warning("검색 결과가 없습니다.")
+            return
+    
+        for idx, row in enumerate(df.itertuples(index=False), start=1):
+            question = str(row.question).strip()
+            
+            # ✅ 숫자 앞에 이모지 추가로 강조 + 굵게 처리
+            expander_title = f"🔸 **{idx}. {question}**"
+            
+            with st.expander(expander_title):
+                st.write(row.answer)
 
-        for _, row in df.iterrows():
-            with st.expander(f"❓ {row['question']}"):
-                st.write(row['answer'])
 
     # ✅ 여기가 핵심! 메뉴에 진입했을 때 바로 실행
     render_faq()
+
