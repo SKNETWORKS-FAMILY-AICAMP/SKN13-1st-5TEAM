@@ -241,7 +241,7 @@ elif menu == "뉴스 정보":
     
         # 4️⃣ MySQL 저장 (중복 가능성 있음 → url 기준으로 정리 추천)
         try:
-            engine = create_engine("mysql+pymysql://user1:1111@localhost:3306/news_db")
+            engine = create_engine("mysql+pymysql://runnnn:1111@localhost:3306/news_db")
             df_new["query"] = query  # ✅ 새로 수집된 뉴스에도 검색어 추가
             df_new.to_sql(name="news_data", con=engine, if_exists="append", index=False)
         except Exception as e:
@@ -298,8 +298,8 @@ elif menu == "트위터 반응":
         db_password = "1111"
         db_host = "localhost"
         db_port = "3306"
-        db_name = "tweet_contents"
-        table_name = "tweet_contents"
+        db_name = "tweet"
+        table_name = "tweet"
 
         engine = create_engine(f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}")
         query = f"SELECT url, text FROM {table_name}"
@@ -369,7 +369,7 @@ elif menu == "유튜브 반응":
     all_text = " ".join(comments.tolist())
 
     # ✅ 폰트 경로 지정 (윈도우 한글 폰트)
-    font_path = r"C:\Users\erety\sk_13_5_1st_sungil\1st_pj_g5\새 폴더\NanumGothicCoding.ttf"
+    font_path = r"C:\Documents\project1\SKN13-1st-5TEAM\skn13_seungho\1st project 최종 1차\NanumGothicCoding.ttf"
 
     wc = WordCloud(
         font_path=font_path,
@@ -388,58 +388,174 @@ elif menu == "유튜브 반응":
 ###############################################################################################################
 
 elif menu == "자주 묻는 질문":
-    st.title("❓ 자주 묻는 질문 (FAQ)")
 
-    # MySQL에서 FAQ 데이터 불러오기
-    def load_data_from_mysql(host, user, password, database, table_name="faq"):
-        conn = pymysql.connect(
-            host=host,
-            user=user,
-            password=password,
-            db=database,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor
-        )
-        with conn.cursor() as cursor:
-            cursor.execute(f"SELECT question, answer FROM {table_name}")
-            result = cursor.fetchall()
-        conn.close()
-        return pd.DataFrame(result)
+    st.title("'연두색 번호판' 자주 묻는 질문")
+    st.markdown("고가 법인차량 대상 연두색 번호판 도입 정책 관련 주요 문의와 답변을 정리했습니다.")
+    
+    with st.expander("💬 Q1: 적용 차량"):
+        st.markdown("""
+        <div style='font-size:22px; font-weight:700; margin-bottom:10px; color:#222;'>💬 Q1. 연두색 번호판은 어떤 차량에 부착되나요?</div>
+    
+        **A.** 연두색 번호판은 **출고가 8,000만 원 이상의 법인 명의 승용차량**에 부착됩니다.  
+        이는 법인차량의 업무용·사적용도를 구분하고, **세금 혜택 오남용을 방지하기 위한 제도적 장치**입니다.
+    
+        ---
+    
+        **📌 부착 대상 요약**
+        - 법인 또는 단체 명의로 등록된 차량
+        - 차량 출고가 기준 **8,000만 원 이상**
+        - **2024년 1월 1일 이후** 신규 등록 차량
+    
+        **🔸 예외 차량**
+        - **1년 미만 단기 렌트 차량**
+        - **2023년 12월 31일 이전 등록된 기존 차량**
+        - 공공기관용 관용차량, 일부 의전 차량
+        """, unsafe_allow_html=True)
+    
+    
+    with st.expander("💬 Q2: 정책 도입 목적"):
+      st.markdown("""
+        <div style='font-size:22px; font-weight:700; margin-bottom:10px; color:#222;'>💬 Q2. 법인차량에 연두색 번호판을 도입한 목적은 무엇인가요?</div>
+                  
+        ✅ **A:** 연두색 번호판 제도는 **법인차량의 사적 사용을 방지하고, 과세 형평성을 회복하기 위해** 도입되었습니다.  
+        이 제도는 단순한 ‘색상 구분’이 아니라, **세금 정의 실현을 위한 제도적 장치**입니다.
+    
+        ---
+        🔹 **배경 요약**
+        - 억대 고가 수입차를 법인 명의로 등록한 후  
+          **가족이나 대표자 개인 용도로 사용하는 사례**가 지속적으로 증가
+        - 차량 구매 비용과 유지비를 **업무 비용으로 처리**하여  
+          **세금 부담을 부당하게 줄이는 '편법 소비'**가 사회적 이슈로 대두됨
+    
+        ---
+        🔸 **도입 목적**
+        - 업무용 차량과 사적 사용 차량의 **구분 명확화**
+        - 법인차량의 **세제 혜택 오남용 방지**
+        - **과세 형평성 제고** 및 고소득층에 대한 탈세 억제
+        """, unsafe_allow_html=True)
+    
+    
+    with st.expander("💬 Q3: 허위 신고 시 처벌"):
+      st.markdown("""
+        <div style='font-size:22px; font-weight:700; margin-bottom:10px; color:#222;'>💬 Q3. 법인차로 등록할 때 취득가를 낮춰서 신고하면 어떻게 되나요?</div>
+        
+        ✅ **A:** **의도적으로 차량 취득가를 낮춰 신고하는 행위는 '다운계약'에 해당하며**,  
+        조세포탈로 간주되어 **세무조사 및 가산세 부과** 대상이 됩니다.
+    
+        ---
+        🔹 **다운계약이란?**
+        - 실제 거래 가격보다 **낮은 가격으로 계약서를 작성**하여  
+          취득세, 등록세, 부가세 등 **세금 부담을 줄이는 행위**
+    
+        ---
+        ❌ **이렇게 되면?**
+        - 세무당국에 적발 시:
+            - **세금 추징** (부족분 + 연체 이자)
+            - **가산세 부과** (최대 40%까지)
+            - **법인 회계·지출 항목 전수조사 가능성**
+    
+        ---
+        📌 **주의사항**
+        - 연두색 번호판 제도 시행 이후,  
+          **출고가를 의도적으로 낮춰 신고하는 사례가 집중 단속 대상**입니다.
+        - **실제 거래가격과 취득가가 상이할 경우**, 국세청이 제조사 출고가 기준으로 과세를 재산정할 수 있습니다.
+        """, unsafe_allow_html=True)
+    
+    
+    with st.expander("💬 Q4: 사적 사용 시 처벌"):
+      st.markdown("""
+        <div style='font-size:22px; font-weight:700; margin-bottom:10px; color:#222;'>💬 Q4. 연두색 번호판을 단 법인차량을 사적으로 사용할 경우 어떻게 되나요?</div>
+      
+        ✅ **A:** 연두색 번호판이 부착된 **법인차량을 사적으로 사용하는 것은 명백한 세법 위반**에 해당하며,  
+        **법인세법·소득세법상 세금 추징 및 가산세, 과태료 등의 처벌 대상이 됩니다.**
+    
+        ---
+        🔹 **사적 사용으로 간주되는 경우**
+        - 주말/야간에 가족이나 지인이 차량을 이용한 흔적
+        - 골프장, 리조트, 휴양지 등 **비업무 목적지 방문 내역**
+        - 운행기록부 미작성 또는 조작
+    
+        ---
+        ❗ **적발 시 불이익**
+        - **업무용 차량 비용 인정 배제** → 법인세 추가 납부
+        - **부가가치세 환급 취소**
+        - **가산세 및 연체 이자 부과**
+        - 반복 적발 시 **세무조사 대상**
+    
+        ---
+        📌 **정부 단속 방식**
+        - **운행기록부 점검**, 유류비·보험 내역 크로스체크
+        - 연두색 번호판 차량은 **민원 신고 접수 시 바로 조사 가능**
+        """, unsafe_allow_html=True)
+    
+    with st.expander("💬 Q5: 정책 시행 후 변화"):
+      st.markdown("""
+        <div style='font-size:22px; font-weight:700; margin-bottom:10px; color:#222;'>💬 Q5. 정책 시행 이후 어떤 변화가 있었나요?</div>
+      
+        ✅ **A:** 2024년 정책 시행 이후 고가 법인차의 등록률이 크게 감소했습니다.  
+        일부 브랜드는 전년 대비 40~90% 가까운 등록 감소를 기록했습니다.
+    
+        ---
+        📉 **시장 전체 영향**
+        - 수입차 전체 등록량 약 **-11.5% 감소**  
+        - 고급 외제차의 **법인 구매 위축 → 개인 명의 전환 증가**
+        - 일부 소비자는 **국산 고급차(G90 등)로 대체**
+        """, unsafe_allow_html=True)
+    
+    with st.expander("💬 Q6: 업무 외 용도 신고 시 포상금 "):
+      st.markdown("""
+        <div style='font-size:22px; font-weight:700; margin-bottom:10px; color:#222;'>💬 Q6. 연두색 번호판 차량의 용도 외 사용을 신고하면 포상금이 있나요?</div>
+      
+        ✅ **A:** 네, 있습니다.  
+        「국가공무원법 제84조 제2항」 및 **각 지방자치단체의 신고 포상 조례**에 따라  
+        **불법 사용된 법인차량을 신고할 경우 포상금이 지급될 수 있습니다.**
+    
+        ---
+        🔹 **포상금 지급 조건**
+        - 연두색 번호판 부착 대상 차량이 **일반 번호판을 부착한 채 운행하거나**,  
+        - **사적으로 운행되는 정황**을 영상 또는 사진 등으로 신고한 경우
+        - **실제 세금 추징**으로 이어질 경우에 한해 지급
+    
+        ---
+        💰 **포상금 금액**
+        - **일정 비율(최대 수백만 원 한도)**로 보상  
+        - 금액 및 지급 방식은 **지자체마다 상이**  
+        - 일반적으로 **공익제보 보상금 또는 탈루세액 비율 기준**
+    
+        ---
+        📌 **주의사항**
+        - 익명 신고는 접수되나, **증거자료가 명확해야 인정**됨  
+        - 포상금은 **사전 확정이 아닌, 사후 심사 후 지급** 방식
+        """, unsafe_allow_html=True)
+    
+    
+    with st.expander("💬 Q7: 연두색 번호판 미부착시 처벌 "):
+      st.markdown("""
+        <div style='font-size:22px; font-weight:700; margin-bottom:10px; color:#222;'>💬 Q7. 법인차량 연두색 번호판을 달지 않으면 과태료가 부과되나요?</div>
+      
+        ✅ **A:** 네, 부과됩니다.
+    
+        2024년 1월부터 시행된 **연두색 번호판 제도**는  
+        출고가 **8천만 원 이상의 법인 승용차량**에 **연두색 번호판 부착을 의무화**하고 있습니다.
+    
+        ---
+        🔹 **관련 법령**  
+        - 「자동차관리법 시행규칙 제11조」  
+        - 「자동차관리법 제48조 제1항」
+    
+        ---
+        ❗ **위반 시 제재**  
+        - 연두색 번호판을 부착하지 않으면 → **등록번호 미부착 간주**  
+        - ▶️ **100만 원 이하 과태료 부과**
+    
+        ---
+        📌 **추가 유의사항**  
+        - 부착 대상 차량이 일반 번호판을 부착하고 운행할 경우,  
+          **사적 이용 신고 시 국세청 세무조사 가능성** 있음  
+        - 국토교통부는 **연두색 번호판 대상 차량 정보를 국세청과 공유** 중
+        """, unsafe_allow_html=True)
 
-    # Streamlit FAQ 페이지 실행 함수
-    def render_faq():
-        st.write("아래 질문을 클릭하면 답변을 확인할 수 있어요.")
-    
-        host = "127.0.0.1"
-        user = "user1"
-        password = "1111"
-        database = "FAQ"
-        table_name = "faq"
-    
-        try:
-            df = load_data_from_mysql(host, user, password, database, table_name)
-        except Exception as e:
-            st.error(f"데이터를 불러오는 중 오류 발생: {e}")
-            return
-    
-        query = st.text_input("🔍 질문 검색", "")
-        if query:
-            df = df[df["question"].str.contains(query, case=False, na=False)]
-    
-        if df.empty:
-            st.warning("검색 결과가 없습니다.")
-            return
-    
-        for idx, row in enumerate(df.itertuples(index=False), start=1):
-            question = str(row.question).strip()
-            
-            # ✅ 숫자 앞에 이모지 추가로 강조 + 굵게 처리
-            expander_title = f"🔸 **{idx}. {question}**"
-            
-            with st.expander(expander_title):
-                st.write(row.answer)
-
-
-    # ✅ 여기가 핵심! 메뉴에 진입했을 때 바로 실행
-    render_faq()
+    # 마무리 문구
+    st.divider()
+    st.info("📬 추가적인 문의사항은 개인적으로 요청해주시면 답변드리겠습니다. 감사합니다.")
 

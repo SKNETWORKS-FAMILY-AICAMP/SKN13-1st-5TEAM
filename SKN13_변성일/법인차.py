@@ -241,7 +241,7 @@ elif menu == "뉴스 정보":
     
         # 4️⃣ MySQL 저장 (중복 가능성 있음 → url 기준으로 정리 추천)
         try:
-            engine = create_engine("mysql+pymysql://runnnn:1111@localhost:3306/news_db")
+            engine = create_engine("mysql+pymysql://user1:1111@localhost:3306/news_db")
             df_new["query"] = query  # ✅ 새로 수집된 뉴스에도 검색어 추가
             df_new.to_sql(name="news_data", con=engine, if_exists="append", index=False)
         except Exception as e:
@@ -298,8 +298,8 @@ elif menu == "트위터 반응":
         db_password = "1111"
         db_host = "localhost"
         db_port = "3306"
-        db_name = "tweet"
-        table_name = "tweet"
+        db_name = "tweet_contents"
+        table_name = "tweet_contents"
 
         engine = create_engine(f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}")
         query = f"SELECT url, text FROM {table_name}"
@@ -369,7 +369,7 @@ elif menu == "유튜브 반응":
     all_text = " ".join(comments.tolist())
 
     # ✅ 폰트 경로 지정 (윈도우 한글 폰트)
-    font_path = r"C:\Documents\project1\SKN13-1st-5TEAM\skn13_seungho\1st project 최종 1차\NanumGothicCoding.ttf"
+    font_path = r"C:\Users\erety\sk_13_5_1st_sungil\1st_pj_g5\새 폴더\NanumGothicCoding.ttf"
 
     wc = WordCloud(
         font_path=font_path,
