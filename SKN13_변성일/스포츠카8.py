@@ -95,7 +95,7 @@ if menu == "차량 등록 현황": # 차량 등록 현황 메뉴 구성
 
 ###############################################################################################################
     
-elif menu == "차량 정보 필터": # 차량 정보 필터 메뉴 구성
+elif menu == "차량 정보 필터":  # 차량 정보 필터 메뉴 구성
     st.title("🚘 수입차 판매 데이터 비교 (연도별/월별 시각화)")
 
     # ✅ MySQL에서 데이터 불러오기 함수
@@ -134,19 +134,16 @@ elif menu == "차량 정보 필터": # 차량 정보 필터 메뉴 구성
 
     # ✅ 조건 충족 시 필터링 및 시각화
     if selected_models and selected_metrics and selected_years:
-        # ✅ 필터링
         filtered_df = df[
             (df['자동차 모델'].isin(selected_models)) &
             (df['년도'].isin(selected_years))
         ].copy()
-    
-        # ✅ 전월대비_증감 전처리 (필요 시)
-        if '전월대비_증감' in filtered_df.columns:
-            filtered_df['전월대비_증감'] = filtered_df['전월대비_증감'].astype(str)
-            filtered_df['전월대비_증감'] = filtered_df['전월대비_증감'].str.extract(r'([+-]?\d+)')[0]
-            filtered_df['전월대비_증감'] = pd.to_numeric(filtered_df['전월대비_증감'], errors='coerce')
-    
+
         for metric in selected_metrics:
+            # ✅ 전처리: % 제거 및 숫자 변환
+            filtered_df[metric] = filtered_df[metric].astype(str).str.replace('%', '').str.strip()
+            filtered_df[metric] = pd.to_numeric(filtered_df[metric], errors='coerce')
+
             # ✅ 월별 요약
             month_summary = (
                 filtered_df
@@ -154,10 +151,9 @@ elif menu == "차량 정보 필터": # 차량 정보 필터 메뉴 구성
                 .sum()
                 .reset_index()
             )
-            month_summary[metric] = pd.to_numeric(month_summary[metric], errors="coerce")
             month_summary['월'] = month_summary['월'].astype(str)
-    
-            # ✅ 1. 월별 판매량 비교 그래프
+
+            # ✅ 1. 월별 그래프
             fig_month = px.bar(
                 month_summary,
                 x="월",
@@ -169,7 +165,7 @@ elif menu == "차량 정보 필터": # 차량 정보 필터 메뉴 구성
             )
             fig_month.update_layout(
                 xaxis_title="월",
-                yaxis_title=metric,
+                yaxis_title=metric if '%' not in metric else f"{metric} (%)",
                 legend_title_text="년도",
                 legend=dict(
                     orientation="h",
@@ -178,36 +174,32 @@ elif menu == "차량 정보 필터": # 차량 정보 필터 메뉴 구성
                     xanchor="center",
                     x=0.5
                 ),
-                plot_bgcolor="#fafafa",
-                font=dict(family="Arial", size=14)
+                font=dict(family="Arial", size=14),
+                plot_bgcolor="#fafafa"
             )
             st.plotly_chart(fig_month)
-    
-            # ✅ 2. 연도별 총합 계산
+
+            # ✅ 2. 연도별 총합
             total_summary = (
                 month_summary
                 .groupby(['년도'])[metric]
                 .sum()
                 .reset_index()
             )
-            total_summary[metric] = pd.to_numeric(total_summary[metric], errors='coerce')
             total_summary['년도'] = total_summary['년도'].astype(str)
-    
-            # ✅ 연도별 색상 설정
-            year_color_map = {
-                '2023': '#4C78A8',
-                '2024': '#9ECAE9',
-            }
-    
+
+            # ✅ 색상 지정
+            year_color_map = {'2023': '#4C78A8', '2024': '#9ECAE9'}
+
             # ✅ 총합 그래프
             fig_total = px.bar(
                 total_summary,
                 x="년도",
                 y=metric,
-                text=total_summary[metric].apply(lambda x: f"{int(x):,}대"),
+                text=total_summary[metric].apply(lambda x: f"{x:.1f}%" if '%' in metric else f"{int(x):,}대"),
                 title=f"📊 {metric} 총합 비교 (선택된 모델 기준)",
                 color="년도",
-                color_discrete_map=year_color_map,
+                color_discrete_map=year_color_map
             )
             fig_total.update_traces(
                 textposition='outside',
@@ -217,7 +209,7 @@ elif menu == "차량 정보 필터": # 차량 정보 필터 메뉴 구성
                 width=0.5,
             )
             fig_total.update_layout(
-                yaxis_title=f"{metric} (대)",
+                yaxis_title=f"{metric} (%)" if '%' in metric else f"{metric} (대)",
                 xaxis_title="연도",
                 title_font_size=20,
                 font=dict(family="Arial", size=14),
@@ -230,9 +222,11 @@ elif menu == "차량 정보 필터": # 차량 정보 필터 메뉴 구성
                 plot_bgcolor="#fafafa"
             )
             st.plotly_chart(fig_total)
-    
     else:
         st.info("연도, 모델, 비교 항목을 모두 선택해주세요.")
+
+
+
 
 
 ###############################################################################################################
