@@ -1,3 +1,4 @@
+day4
 # streamlit_car_news_app.py
 
 import streamlit as st
@@ -214,3 +215,4 @@ elif page == "뉴스 키워드 분석":
 elif page == "자주 묻는 질문":
     FAQ()
 
+main

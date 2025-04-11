@@ -1,3 +1,4 @@
+day4
 import plotly.express as px # 추가
 
 
@@ -37,3 +38,4 @@ if menu == "차량 등록 현황":
     diff = avg_2024 - avg_2023
     rate = (diff / avg_2023) * 100
     col3.metric("📉 전년 대비 변화", f"{diff:+.0f}대", f"{rate:+.1f}%")
+main
