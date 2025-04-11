@@ -34,7 +34,7 @@ if menu == "차량 등록 현황": # 차량 등록 현황 메뉴 구성
     # ✅ MySQL에서 데이터 불러오기 함수
     @st.cache_data
     def load_car_data_from_mysql():
-        db_user = "runnnn"
+        db_user = "user1"
         db_password = "1111"
         db_host = "localhost"
         db_port = "3306"
@@ -103,14 +103,14 @@ elif menu == "차량 정보 필터": # 차량 정보 필터 메뉴 구성
     def load_data():
         conn = pymysql.connect(
             host="localhost",
-            user="runnnn",
+            user="user1",
             password="1111",
             database="car_sales",
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
         with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM carsales")
+            cursor.execute("SELECT * FROM car_sales")
             result = cursor.fetchall()
         conn.close()
 
@@ -353,7 +353,7 @@ elif menu == "트위터 반응":
     # ✅ MySQL에서 트위터 데이터 불러오기
     @st.cache_data
     def load_data_tw():
-        db_user = "runnnn"
+        db_user = "user1"
         db_password = "1111"
         db_host = "localhost"
         db_port = "3306"
@@ -393,7 +393,7 @@ elif menu == "유튜브 반응":
     # ✅ MySQL에서 유튜브 댓글 불러오기
     @st.cache_data
     def load_data_youtube():
-        db_user = "runnnn"
+        db_user = "user1"
         db_password = "1111"
         db_host = "localhost"
         db_port = "3306"
