@@ -15,11 +15,11 @@
 
 | 이름  | 이미지                                       | 이메일               |
 |:------:|:-------------------------------------------:|:--------------------:|
-| 김승호 | <img src="승호-우디.png" width="80"/>       | qqqppma@gmail.com    |
-| 김지민 | <img src="지민-렉스.png" width="80"/>       | kzm0502@naver.com    |
-| 변성일 | <img src="성일-버즈.png" width="80"/>       | erety4100@naver.com  |
-| 장시인 | <img src="시인-포테이토.png" width="80"/>   | zzangsiin@gmail.com  |
-| 장진슬 | <img src="진슬-알린.png" width="80"/>       | gpendlr@gmail.com    |
+| 김승호 | <img src="img/승호-우디.png" width="80"/>       | qqqppma@gmail.com    |
+| 김지민 | <img src="img/지민-렉스.png" width="80"/>       | kzm0502@naver.com    |
+| 변성일 | <img src="img/성일-버즈.png" width="80"/>       | erety4100@naver.com  |
+| 장시인 | <img src="img/시인-포테이토.png" width="80"/>   | zzangsiin@gmail.com  |
+| 장진슬 | <img src="img/진슬-알린.png" width="80"/>       | gpendlr@gmail.com    |
 
 
 ---
@@ -33,9 +33,9 @@
 
 >고가 차량을 법인 명의로 구매하면 부가세 환급, 유지비 비용처리, 법인세 절감 등의 혜택을 받을 수 있어 개인이 사적으로 이용하는 경우가 많아졌다.
 
-<img src="10대 중 9대가 슈퍼카(news).png" />
+<img src="img/10대 중 9대가 슈퍼카(news).png" />
 
-<img src="법인구매_개인구매비율(news).png" />
+<img src="img/법인구매_개인구매비율(news).png" />
 
 ___
 
@@ -45,7 +45,7 @@ ___
 
 >고가 법인차의 사적 사용을 막기 위한 정책이 어떤 효과를 냈는지, 대중 반응이 어땠는지를 살펴본다.
 
-<img src="연두색번호판도입(news).png" />
+<img src="img/연두색번호판도입(news).png" />
 
 ___
 
@@ -141,7 +141,7 @@ ___
 - SQL 을 이용해 ERD 작성
 
 ### <ERD 관계도 예시: 브랜드-모델-연도별 법인등록량>
-<img src="ERD.png" />
+<img src="img/ERD.png" />
 
 
 ---
@@ -150,7 +150,7 @@ ___
 # 3. 연두색 번호판 시행 전후 슈퍼카 판매량/등록 수 변화
 
 ### 연도별 법인 수입차 cc 별 등록수 변화 추이 
-<img src="차량등록현황(st).png" />
+<img src="img/차량등록현황(st).png" />
 
 
 --
@@ -162,14 +162,14 @@ ___
 >한국수입자동차협회(KAIDA)에 따르면 2023년 한 해 동안 1억 원 이상 수입차는 총 6만2,520대가 팔렸고, 이 중 약 65%가 법인차였다​
 >특히 포르쉐, 벤틀리, 롤스로이스 등 슈퍼카 브랜드는 대부분이 법인 명의로 등록되는 구조였다.
 
-<img src="법인관련뉴스(st).png" />
-<img src="뉴스제목및요약(st).png" />
+<img src="img/법인관련뉴스(st).png" />
+<img src="img/뉴스제목및요약(st).png" />
 
 > 예시 그래프: 슈퍼카 (Porsche Panamera / Porsche 911) 판매량 변화
-> <img src="월별 판매량.png" />
+> <img src="img/월별 판매량.png" />
 
 > 예시 그래프: 슈퍼카 (Porsche Panamera / Porsche 911) 증감 월별 추이
-> <img src="전월대비_증감_월별 추이.png" />
+> <img src="img/전월대비_증감_월별 추이.png" />
 
 
 ## 3-2. 🎯 분석 브랜드 - 가장 큰 하락폭을 보인 브랜드 TOP 3
@@ -190,7 +190,7 @@ ___
 
 
 - 예시 사진: 다나와 자동차 2025년 3월 수입 스포츠카 판매실적
-<img src="다나와_수입차판매량예시.png" />
+<img src="img/다나와_수입차판매량예시.png" />
 
 
 
@@ -212,12 +212,12 @@ ___
 
 ⚠️ 다운계약서 작성: 출고가를 할인으로 낮춰 연두색 기준(8000만원)을 피하는 방식
 
-<img src="다운계약서(st).png">
-<img src="다운계약성행(news).png">
+<img src="img/다운계약서(st).png">
+<img src="img/다운계약성행(news).png">
 
 ⚠️ 개인 리스 전환: 법인 대신 개인 명의 리스로 전환하는 사례 증가
 
-<img src="리스꼼수(news).png">
+<img src="img/리스꼼수(news).png">
 
 ⚠️ 기존 등록차량 예외: 제도 시행 전 등록 차량은 그대로 유지 → 실효성 저하
 
@@ -244,11 +244,11 @@ Streamlit 앱을 통해 검색 필터링 및 워드클라우드 분석
 
 주요 키워드 빈도 및 정성적 반응 분류
 
-<img src="뉴스제목및요약(st).png" />
+<img src="img/뉴스제목및요약(st).png" />
 
-<img src="트위터반응수집(st).png" />
+<img src="img/트위터반응수집(st).png" />
 
-<img src="유투브기반워드클라우드(st).png" />
+<img src="img/유투브기반워드클라우드(st).png" />
 
 
 ### 4-1. 긍정적 인식✅ 
@@ -271,7 +271,7 @@ Streamlit 앱을 통해 검색 필터링 및 워드클라우드 분석
 → 적용 기준과 예외 항목에 대한 형평성 논란. 일부는 **‘낙인 효과’**에 대한 불만도 표출.
 
 
-<img src="연두색번호판제도(news).png">
+<img src="img/연두색번호판제도(news).png">
 
 
 
@@ -338,7 +338,7 @@ Streamlit 앱을 통해 검색 필터링 및 워드클라우드 분석
 - 연두색 번호판 차량의 용도 외 사용을 신고하면 포상금이 있나요?
 - 법인차량 연두색 번호판을 달지 않으면 과태료가 부과되나요?
 
-<img src="연두색번호판자주묻는질문(st).png" />
+<img src="img/연두색번호판자주묻는질문(st).png" />
 
 
 
