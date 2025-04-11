@@ -15,28 +15,26 @@ import matplotlib.font_manager as fm
 import pymysql
 from wordcloud import WordCloud
 from sqlalchemy import create_engine
+import mysql.connector
 
 # 한글 폰트 설정
-matplotlib.rcParams['font.family'] = 'Malgun Gothic' 
+matplotlib.rcParams['font.family'] = 'Malgun Gothic'
 matplotlib.rcParams['axes.unicode_minus'] = False
 
 # Streamlit 앱 구성
 st.set_page_config(page_title="법인차량 대시보드", layout="wide")
+# Streamlit 메뉴 구성
 menu = st.sidebar.radio("📋 메뉴 선택", ["차량 등록 현황","차량 정보 필터", "뉴스 정보", "트위터 반응", "유튜브 반응" ,"자주 묻는 질문"])       
 
 ###############################################################################################################
 
-import pandas as pd
-import streamlit as st
-from sqlalchemy import create_engine
-
-if menu == "차량 등록 현황":
+if menu == "차량 등록 현황": # 차량 등록 현황 메뉴 구성
     st.title("🚗 수입 법인차량 등록 통계 (차종별)")
 
     # ✅ MySQL에서 데이터 불러오기 함수
     @st.cache_data
     def load_car_data_from_mysql():
-        db_user = "gogimin"
+        db_user = "runnnn"
         db_password = "1111"
         db_host = "localhost"
         db_port = "3306"
@@ -78,9 +76,6 @@ if menu == "차량 등록 현황":
         else:
             st.info("5,000대 미만 등록된 모델이 없습니다.")
 
-        # ✅ 전체 차트 (중복되서 주석처리)
-        # st.line_chart(car_reg_df_selected)
-
         # ✅ 최근 12개월 평균 비교
         car_reg_df_recent = car_reg_df_selected[-24:].copy()
         car_reg_df_2023 = car_reg_df_recent[car_reg_df_recent.index.year == 2023].mean()
@@ -100,93 +95,157 @@ if menu == "차량 등록 현황":
 
 ###############################################################################################################
     
-# elif menu == "차량 정보 필터":
-#     st.title("🚘 수입차 판매 데이터 비교 (연도별/월별 시각화)")
+elif menu == "차량 정보 필터": # 차량 정보 필터 메뉴 구성
+    st.title("🚘 수입차 판매 데이터 비교 (연도별/월별 시각화)")
 
-#     @st.cache_data
-#     def load_data():
-#         conn = pymysql.connect(
-#             host="localhost",
-#             user="gogimin",
-#             password="1111",
-#             database="car_sales",
-#             charset='utf8mb4',
-#             cursorclass=pymysql.cursors.DictCursor
-#         )
-#         with conn.cursor() as cursor:
-#             cursor.execute("SELECT * FROM car_sales")
-#             result = cursor.fetchall()
-#         conn.close()
+    # ✅ MySQL에서 데이터 불러오기 함수
+    @st.cache_data
+    def load_data():
+        conn = pymysql.connect(
+            host="localhost",
+            user="runnnn",
+            password="1111",
+            database="car_sales",
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM carsales")
+            result = cursor.fetchall()
+        conn.close()
 
-#         df = pd.DataFrame(result)
-#         df = df.drop_duplicates(subset=["자동차 모델", "년도", "월"])
-#         return df
+        df = pd.DataFrame(result)
+        df = df.drop_duplicates(subset=["자동차 모델", "년도", "월"])
+        return df
 
     # ✅ 데이터 불러오기
-    # df = load_data()
+    df = load_data()
 
     # ✅ 필터 영역
-    # available_years = sorted(df["년도"].unique())
-    # selected_years = st.multiselect("📆 연도 선택", available_years, default=available_years)
+    available_years = sorted(df["년도"].unique())
+    selected_years = st.multiselect("📆 연도 선택", available_years, default=available_years)
 
-    # car_models = df['자동차 모델'].unique()
-    # selected_models = st.multiselect("🚘 모델 선택", car_models)
+    car_models = df['자동차 모델'].unique()
+    selected_models = st.multiselect("🚘 모델 선택", car_models)
 
-    # excluded = ['년도', '월', '자동차 모델']
-    # candidate_metrics = [col for col in df.columns if col not in excluded]
-    # selected_metrics = st.multiselect("📊 비교 항목 선택", candidate_metrics)
+    excluded = ['년도', '월', '자동차 모델']
+    candidate_metrics = [col for col in df.columns if col not in excluded]
+    selected_metrics = st.multiselect("📊 비교 항목 선택", candidate_metrics)
 
-    # # ✅ 조건 충족 시 필터링 및 시각화
-    # if selected_models and selected_metrics and selected_years:
-    #     filtered_df = df[
-    #         (df['자동차 모델'].isin(selected_models)) &
-    #         (df['년도'].isin(selected_years))
-    #     ].copy()
-
-    #     if '전월대비_증감' in filtered_df.columns:
-    #         filtered_df['전월대비_증감'] = filtered_df['전월대비_증감'].astype(str)
-    #         filtered_df['전월대비_증감'] = filtered_df['전월대비_증감'].str.extract(r'([+-]?\d+)')[0]
-    #         filtered_df['전월대비_증감'] = pd.to_numeric(filtered_df['전월대비_증감'], errors='coerce')
-
-    #     for metric in selected_metrics:
-    #         fig = px.line(
-    #             filtered_df,
-    #             x="월",
-    #             y=metric,
-    #             color="자동차 모델",
-    #             line_dash="년도",
-    #             markers=True,
-    #             title=f"{metric} 월별 추이 (연도별 라인 구분)",
-    #         )
-
-    #         if metric == "전월대비_증감":
-    #             fig.update_yaxes(zeroline=True, zerolinewidth=2, zerolinecolor='gray')
-    #             fig.update_layout(yaxis_range=[
-    #                 filtered_df[metric].min() - 10,
-    #                 filtered_df[metric].max() + 10
-    #             ])
-
-    #         fig.update_layout(
-    #             xaxis=dict(tickmode='linear', tick0=1, dtick=1),
-    #             legend_title_text="자동차 모델",
-    #             legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5)
-    #         )
-    #         st.plotly_chart(fig)
-    # else:
-    #     st.info("연도, 모델, 비교 항목을 모두 선택해주세요.")
+    # ✅ 조건 충족 시 필터링 및 시각화
+    if selected_models and selected_metrics and selected_years:
+        # ✅ 필터링
+        filtered_df = df[
+            (df['자동차 모델'].isin(selected_models)) &
+            (df['년도'].isin(selected_years))
+        ].copy()
+    
+        # ✅ 전월대비_증감 전처리 (필요 시)
+        if '전월대비_증감' in filtered_df.columns:
+            filtered_df['전월대비_증감'] = filtered_df['전월대비_증감'].astype(str)
+            filtered_df['전월대비_증감'] = filtered_df['전월대비_증감'].str.extract(r'([+-]?\d+)')[0]
+            filtered_df['전월대비_증감'] = pd.to_numeric(filtered_df['전월대비_증감'], errors='coerce')
+    
+        for metric in selected_metrics:
+            # ✅ 월별 요약
+            month_summary = (
+                filtered_df
+                .groupby(['년도', '월', '자동차 모델'])[metric]
+                .sum()
+                .reset_index()
+            )
+            month_summary[metric] = pd.to_numeric(month_summary[metric], errors="coerce")
+            month_summary['월'] = month_summary['월'].astype(str)
+    
+            # ✅ 1. 월별 판매량 비교 그래프
+            fig_month = px.bar(
+                month_summary,
+                x="월",
+                y=metric,
+                color="년도",
+                barmode="group",
+                facet_col="자동차 모델",
+                title=f"{metric} 월별 연도 비교 막대그래프"
+            )
+            fig_month.update_layout(
+                xaxis_title="월",
+                yaxis_title=metric,
+                legend_title_text="년도",
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=-0.3,
+                    xanchor="center",
+                    x=0.5
+                ),
+                plot_bgcolor="#fafafa",
+                font=dict(family="Arial", size=14)
+            )
+            st.plotly_chart(fig_month)
+    
+            # ✅ 2. 연도별 총합 계산
+            total_summary = (
+                month_summary
+                .groupby(['년도'])[metric]
+                .sum()
+                .reset_index()
+            )
+            total_summary[metric] = pd.to_numeric(total_summary[metric], errors='coerce')
+            total_summary['년도'] = total_summary['년도'].astype(str)
+    
+            # ✅ 연도별 색상 설정
+            year_color_map = {
+                '2023': '#4C78A8',
+                '2024': '#9ECAE9',
+            }
+    
+            # ✅ 총합 그래프
+            fig_total = px.bar(
+                total_summary,
+                x="년도",
+                y=metric,
+                text=total_summary[metric].apply(lambda x: f"{int(x):,}대"),
+                title=f"📊 {metric} 총합 비교 (선택된 모델 기준)",
+                color="년도",
+                color_discrete_map=year_color_map,
+            )
+            fig_total.update_traces(
+                textposition='outside',
+                cliponaxis=False,
+                marker_line_width=1.5,
+                marker_line_color='gray',
+                width=0.5,
+            )
+            fig_total.update_layout(
+                yaxis_title=f"{metric} (대)",
+                xaxis_title="연도",
+                title_font_size=20,
+                font=dict(family="Arial", size=14),
+                uniformtext_minsize=12,
+                uniformtext_mode='hide',
+                bargap=0.3,
+                showlegend=False,
+                height=400,
+                margin=dict(t=60, b=40, l=60, r=40),
+                plot_bgcolor="#fafafa"
+            )
+            st.plotly_chart(fig_total)
+    
+    else:
+        st.info("연도, 모델, 비교 항목을 모두 선택해주세요.")
 
 
 ###############################################################################################################
 
-elif menu == "뉴스 정보":
+elif menu == "뉴스 정보": # 뉴스 정보 메뉴 구성
     st.title("📰 법인 관련 뉴스")
     st.info("이 섹션은 뉴스 크롤링 기능을 제공합니다. 다른 기능은 기존과 동일합니다.")
 
-    QUERY = st.text_input("검색어를 입력하세요", value="법인차 제도")
+    QUERY = st.text_input("검색어를 입력하세요", value="법인차 제도") # 기본값 법인차 도도
     FILE_PATH = f"news_data/{QUERY}_news.csv"
-    os.makedirs("news_data", exist_ok=True)
+    os.makedirs("news_data", exist_ok=True) # 폴더 저
 
-    def parse_date(text):
+    def parse_date(text): # 실제 날짜 객체로 변
         if '일 전' in text:
             return datetime.now() - timedelta(days=int(text.replace('일 전', '').strip()))
         elif '시간 전' in text:
@@ -198,9 +257,9 @@ elif menu == "뉴스 정보":
                 return None
         return None
 
-    def crawl_news(query, pages=1): # sql 연동 ,검색어 news 자동 저장
+    def crawl_news(query, pages=1): # 크롤링: 제목 / 링크 / 언론사 / 날짜 / 요약 / URL을 가져옴
         data = []
-        for page in range(1, pages + 1):
+        for page in range(1, pages + 1): # 페이지당 10개
             start = (page - 1) * 10 + 1
             url = f'https://search.naver.com/search.naver?where=news&query={query}&start={start}'
             res = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -224,7 +283,7 @@ elif menu == "뉴스 정보":
                 data.append({'title': title, 'press': press, 'date': date, 'summary': summary, 'url': link})
         return pd.DataFrame(data)
 
-    def save_news(df_new, query):
+    def save_news(df_new, query): # 뉴스 저장 , query 어떤 검색어로 저장했는지
         # 1️⃣ 기존 CSV 병합
         file_path = f"news_data/{query}_news.csv"
         if os.path.exists(file_path):
@@ -239,9 +298,9 @@ elif menu == "뉴스 정보":
         # 3️⃣ CSV 저장
         df_all.to_csv(file_path, index=False, encoding='utf-8-sig')
     
-        # 4️⃣ MySQL 저장 (중복 가능성 있음 → url 기준으로 정리 추천)
+        # 4️⃣ MySQL 저장
         try:
-            engine = create_engine("mysql+pymysql://gogimin:1111@localhost:3306/news_db")
+            engine = create_engine("mysql+pymysql://runnnn:1111@localhost:3306/news_db")
             df_new["query"] = query  # ✅ 새로 수집된 뉴스에도 검색어 추가
             df_new.to_sql(name="news_data", con=engine, if_exists="append", index=False)
         except Exception as e:
@@ -249,7 +308,7 @@ elif menu == "뉴스 정보":
     
         return df_all
 
-    def show_news_paginated(df):
+    def show_news_paginated(df): # 뉴스가 많을 떄 10개씩 1페이지 별로 나눠 출력
         st.subheader("📰 뉴스 제목 및 요약 보기 (페이지별)")
         def truncate(text, limit=100):
             return text if len(text) <= limit else text[:limit] + "..."
@@ -294,7 +353,7 @@ elif menu == "트위터 반응":
     # ✅ MySQL에서 트위터 데이터 불러오기
     @st.cache_data
     def load_data_tw():
-        db_user = "gogimin"
+        db_user = "runnnn"
         db_password = "1111"
         db_host = "localhost"
         db_port = "3306"
@@ -331,10 +390,10 @@ elif menu == "트위터 반응":
 elif menu == "유튜브 반응":
     st.title("🟢 연두색 번호판 관련 유튜브 댓글 분석")
 
-    # ✅ MySQL에서 유튜브 댓글 불러오기 (컬럼명이 '0'인 경우 처리)
+    # ✅ MySQL에서 유튜브 댓글 불러오기
     @st.cache_data
     def load_data_youtube():
-        db_user = "gogimin"
+        db_user = "runnnn"
         db_password = "1111"
         db_host = "localhost"
         db_port = "3306"
@@ -344,7 +403,7 @@ elif menu == "유튜브 반응":
         # SQLAlchemy 연결
         engine = create_engine(f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}")
 
-        # ✅ 컬럼명이 숫자이므로 역따옴표로 감싸고, AS로 이름 변경
+        # ✅ 유튜브 댓글의 컬럼명이 숫자(0)이므로 역따옴표로 감싸고, 이름 변경 
         query = f"SELECT `0` AS comment FROM {table_name}"
         df = pd.read_sql(query, con=engine)
         return df
@@ -369,7 +428,7 @@ elif menu == "유튜브 반응":
     all_text = " ".join(comments.tolist())
 
     # ✅ 폰트 경로 지정 (윈도우 한글 폰트)
-    font_path = r"C:\SKN13_Documnet\SKN13_1st_project\SKN13-1st-5TEAM_지민\SKN13_변성일\NanumGothicCoding.ttf"
+    font_path = r"C:\Users\erety\sk_13_5_1st_sungil\1st_pj_g5\새 폴더\NanumGothicCoding.ttf"
 
     wc = WordCloud(
         font_path=font_path,
@@ -555,46 +614,7 @@ elif menu == "자주 묻는 질문":
         - 국토교통부는 **연두색 번호판 대상 차량 정보를 국세청과 공유** 중
         """, unsafe_allow_html=True)
 
-<<<<<<< HEAD
-    # Streamlit FAQ 페이지 실행 함수
-    def render_faq():
-        st.write("아래 질문을 클릭하면 답변을 확인할 수 있어요.")
-    
-        host = "127.0.0.1"
-        user = "gogimin"
-        password = "1111"
-        database = "FAQ"
-        table_name = "faq"
-    
-        try:
-            df = load_data_from_mysql(host, user, password, database, table_name)
-        except Exception as e:
-            st.error(f"데이터를 불러오는 중 오류 발생: {e}")
-            return
-    
-        query = st.text_input("🔍 질문 검색", "")
-        if query:
-            df = df[df["question"].str.contains(query, case=False, na=False)]
-    
-        if df.empty:
-            st.warning("검색 결과가 없습니다.")
-            return
-    
-        for idx, row in enumerate(df.itertuples(index=False), start=1):
-            question = str(row.question).strip()
-            
-            # ✅ 숫자 앞에 이모지 추가로 강조 + 굵게 처리
-            expander_title = f"🔸 **{idx}. {question}**"
-            
-            with st.expander(expander_title):
-                st.write(row.answer)
-
-
-    # ✅ 여기가 핵심! 메뉴에 진입했을 때 바로 실행
-    render_faq()
-=======
     # 마무리 문구
     st.divider()
     st.info("📬 추가적인 문의사항은 개인적으로 요청해주시면 답변드리겠습니다. 감사합니다.")
->>>>>>> 4b99f16ea11260ef5bb994d3f4caf88787f4a241
 
