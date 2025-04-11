@@ -1,3 +1,4 @@
+day4
 
 import streamlit as st
 import pandas as pd
@@ -301,3 +302,4 @@ elif menu == "자주 묻는 질문":
         st.write("A. 네, 부가가치세 환급 등 다양한 혜택이 존재합니다.")
     with st.expander("Q3. 전기차도 법인차로 등록 가능한가요?"):
         st.write("A. 네, 오히려 친환경 혜택으로 인해 많이 권장되고 있습니다.")
+main

@@ -1,3 +1,4 @@
+day4
 # 뉴스 정보, 검색어 입력, 요약, 링크
 # 페이지 선택부분 수정 필요요
 
@@ -102,4 +103,5 @@ elif menu == "뉴스 정보":
         st.dataframe(df_all[['date', 'title', 'press', 'summary']])
         show_news(df_all)
     else:
+main
         st.warning("뉴스 데이터가 존재하지 않습니다.")

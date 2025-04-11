@@ -1,3 +1,4 @@
+day4
 import seaborn as sns
 import requests
 from bs4 import BeautifulSoup
@@ -120,4 +121,5 @@ elif menu == "뉴스 정보":
 
         show_news(df_all)
     else:
+main
         st.warning("뉴스 데이터가 존재하지 않습니다.")
