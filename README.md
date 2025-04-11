@@ -165,11 +165,9 @@ ___
 <img src="img/법인관련뉴스(st).png" />
 <img src="img/뉴스제목및요약(st).png" />
 
-> 예시 그래프: 슈퍼카 (Porsche Panamera / Porsche 911) 판매량 변화
-> <img src="img/월별 판매량.png" />
-
-> 예시 그래프: 슈퍼카 (Porsche Panamera / Porsche 911) 증감 월별 추이
-> <img src="img/전월대비_증감_월별 추이.png" />
+> 예시 그래프: 슈퍼카 (Porsche Panamera) 판매량 변화
+> <img src="img/판매량 월별 연도 비교 막대그래프.png" />
+> <img src="img/판매량 총합 비교.png" />
 
 
 ## 3-2. 🎯 분석 브랜드 - 가장 큰 하락폭을 보인 브랜드 TOP 3
